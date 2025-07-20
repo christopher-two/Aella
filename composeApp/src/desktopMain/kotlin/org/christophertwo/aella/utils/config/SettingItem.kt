@@ -47,7 +47,8 @@ sealed interface SettingItem {
     data class ChoiceSetting(
         override val title: String,
         val state: MutableState<String>,
-        val options: List<String>
+        val options: List<String>,
+        val onStateChange: (String) -> Unit
     ) : SettingItem
 
     /**

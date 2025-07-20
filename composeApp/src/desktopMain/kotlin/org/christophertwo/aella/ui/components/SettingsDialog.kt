@@ -171,6 +171,7 @@ private fun ChoiceSettingRow(item: ChoiceSetting) {
                         text = { Text(option) },
                         onClick = {
                             item.state.value = option
+                            item.onStateChange(option)
                             expanded = false
                         }
                     )

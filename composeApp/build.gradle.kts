@@ -49,9 +49,9 @@ kotlin {
                 implementation(ktor.client.logging)
                 implementation(ktor.client.serialization)
             }
-            with(libs) {//room
+            with(libs) {//data
                 implementation(androidx.room.runtime)
-                implementation(libs.sqlite.bundled)
+                implementation(sqlite.bundled)
             }
             with(libs) {//utils
                 implementation(composeIcons.evaIcons)

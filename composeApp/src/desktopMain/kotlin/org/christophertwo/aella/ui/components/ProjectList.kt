@@ -172,7 +172,8 @@ fun ProjectListScreen(
             ChoiceSetting(
                 "Tema de la aplicación",
                 themeState,
-                listOf("Claro", "Oscuro", "Sistema")
+                listOf("Claro", "Oscuro", "Sistema"),
+                {}
             ),
             SliderSetting("Volumen general", volumeState)
         )
