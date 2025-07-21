@@ -40,11 +40,9 @@ import compose.icons.evaicons.Outline
 import compose.icons.evaicons.outline.Search
 import compose.icons.evaicons.outline.Trash
 import org.christophertwo.aella.utils.config.ProjectListConfig
-import org.christophertwo.aella.utils.config.SettingItem.ChoiceSetting
-import org.christophertwo.aella.utils.config.SettingItem.SliderSetting
-import org.christophertwo.aella.utils.config.SettingItem.TextEntrySetting
-import org.christophertwo.aella.utils.config.SettingItem.ToggleSetting
+import org.christophertwo.aella.utils.config.SettingItem
 import org.christophertwo.aella.utils.config.SettingsDialogConfig.Companion.getDefaultSettingsDialogConfig
+import org.christophertwo.aella.utils.enums.ProjectStatus
 import org.christophertwo.aella.utils.model.ProjectData
 
 /**
@@ -142,6 +140,7 @@ private fun ProjectCard(
  * @param isLoadingMore Un booleano que indica si la carga de la siguiente página está en progreso.
  * @param hasMorePages Un booleano que indica si hay más páginas de proyectos para cargar.
  * @param config El objeto [ProjectListConfig] para personalizar la apariencia de la pantalla.
+ * @param saveProject La función para guardar un proyecto modificado.
  * @param modifier El [Modifier] para este composable.
  */
 @Composable
@@ -153,29 +152,61 @@ fun ProjectListScreen(
     isLoadingMore: Boolean,
     hasMorePages: Boolean,
     config: ProjectListConfig,
+    saveProject: (ProjectData) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showDialog by remember { mutableStateOf(false) }
+    var projectSelected by remember { mutableStateOf<ProjectData?>(null) }
+    var isShowDialog by remember { mutableStateOf(false) }
 
-    // Creamos los estados mutables que nuestros modelos de configuración van a manipular.
-    val notificationState = remember { mutableStateOf(true) }
-    val usernameState = remember { mutableStateOf("ComposeFan") }
-    val themeState = remember { mutableStateOf("Claro") }
-    val volumeState = remember { mutableStateOf(0.75f) }
-
-    // Definimos nuestra pantalla de configuración como una simple lista de datos.
-    // El orden en esta lista es el orden en que aparecerán en la UI.
-    val settingsList = remember {
+    // Actualiza settingsList cada vez que projectSelected cambie
+    val settingsList = remember(projectSelected) {
         listOf(
-            ToggleSetting("Habilitar notificaciones", notificationState),
-            TextEntrySetting("Nombre de usuario", usernameState),
-            ChoiceSetting(
-                "Tema de la aplicación",
-                themeState,
-                listOf("Claro", "Oscuro", "Sistema"),
-                {}
+            SettingItem.ChoiceSetting(
+                title = "Estado del proyecto",
+                state = mutableStateOf(projectSelected?.status?.displayName ?: ProjectStatus.IN_PROGRESS.displayName),
+                options = ProjectStatus.entries.map { it.displayName }, // Obtener todos los nombres de los estados
+                onStateChange = { newValue ->
+                    projectSelected?.let { project ->
+                        saveProject(project.copy(status = ProjectStatus.valueOf(newValue)))
+                    }
+                }
             ),
-            SliderSetting("Volumen general", volumeState)
+            SettingItem.TextEntrySetting(
+                title = "Nombre del proyecto",
+                state = mutableStateOf(projectSelected?.name ?: ""),
+                onStateChange = { newValue ->
+                    projectSelected?.let { project ->
+                        saveProject(project.copy(name = newValue))
+                    }
+                }
+            ),
+            SettingItem.TextEntrySetting(
+                title = "Descripción del proyecto",
+                state = mutableStateOf(projectSelected?.description ?: ""),
+                onStateChange = { newValue ->
+                    projectSelected?.let { project ->
+                        saveProject(project.copy(description = newValue))
+                    }
+                }
+            ),
+            SettingItem.TextEntrySetting(
+                title = "Fecha de creación",
+                state = mutableStateOf(projectSelected?.creationDate ?: ""),
+                onStateChange = { newValue ->
+                    projectSelected?.let { project ->
+                        saveProject(project.copy(creationDate = newValue))
+                    }
+                }
+            ),
+            SettingItem.TextEntrySetting(
+                title = "Miembros del equipo",
+                state = mutableStateOf(projectSelected?.teamMembers?.joinToString(", ") ?: ""),
+                onStateChange = { newValue ->
+                    projectSelected?.let { project ->
+                        saveProject(project.copy(teamMembers = newValue.split(",").map { it.trim() }))
+                    }
+                }
+            )
         )
     }
 
@@ -204,7 +235,8 @@ fun ProjectListScreen(
                     project = project,
                     config = config,
                     onClick = {
-                        showDialog = true
+                        projectSelected = project
+                        isShowDialog = true
                     }
                 )
 
@@ -227,29 +259,31 @@ fun ProjectListScreen(
                 }
             }
         }
-        if (showDialog) {
-            SettingsDialog(
-                onDismissRequest = { showDialog = false },
-                title = "Configuración de la Aplicación",
-                items = settingsList, // Pasamos la lista de modelos directamente.
-                config = getDefaultSettingsDialogConfig(),
-                buttons = {
-                    OutlinedButton(
-                        onClick = { showDialog = false },
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text("Cancelar")
-                    }
-                    Button(onClick = {
-                        // La lógica de guardado ahora solo necesita leer los estados.
-                        println("Guardando: Notificaciones=${notificationState.value}, Usuario='${usernameState.value}', Tema='${themeState.value}', Volumen=${volumeState.value}")
-                        showDialog = false
-                    }) {
-                        Text("Guardar")
-                    }
+    }
+    if (isShowDialog) {
+        SettingsDialog(
+            onDismissRequest = { isShowDialog = false },
+            title = "Configuración del Proyecto",
+            items = settingsList, // Pasamos la lista de modelos directamente.
+            config = getDefaultSettingsDialogConfig(),
+            buttons = {
+                OutlinedButton(
+                    onClick = { isShowDialog = false },
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text("Cancelar")
                 }
-            )
-        }
+                Button(
+                    onClick = {
+                        // La lógica de guardar ya está en los onStateChange de cada SettingItem
+                        // Aquí solo cerramos el diálogo
+                        isShowDialog = false
+                    }
+                ) {
+                    Text("Guardar")
+                }
+            }
+        )
     }
 }
 

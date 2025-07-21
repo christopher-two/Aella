@@ -137,7 +137,10 @@ private fun ToggleSettingRow(item: ToggleSetting) {
         Text(item.title, modifier = Modifier.weight(1f))
         Switch(
             checked = item.state.value,
-            onCheckedChange = { item.state.value = it }
+            onCheckedChange = {
+                item.state.value = it
+                item.onStateChange(it)
+            }
         )
     }
 }
@@ -148,7 +151,10 @@ private fun TextEntrySettingRow(item: TextEntrySetting) {
         Text(item.title, modifier = Modifier.weight(1f))
         OutlinedTextField(
             value = item.state.value,
-            onValueChange = { item.state.value = it },
+            onValueChange = {
+                item.state.value = it
+                item.onStateChange(it)
+            },
             singleLine = true,
             modifier = Modifier.width(200.dp)
         )
@@ -187,7 +193,10 @@ private fun SliderSettingItem(item: SliderSetting) {
         Text("${item.title}: ${(item.state.value * 100).toInt()}%")
         Slider(
             value = item.state.value,
-            onValueChange = { item.state.value = it },
+            onValueChange = {
+                item.state.value = it
+                item.onStateChange(it)
+            },
             valueRange = item.valueRange,
             steps = item.steps
         )

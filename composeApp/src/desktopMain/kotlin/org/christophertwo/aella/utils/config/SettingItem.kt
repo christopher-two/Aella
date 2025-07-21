@@ -21,7 +21,8 @@ sealed interface SettingItem {
      */
     data class ToggleSetting(
         override val title: String,
-        val state: MutableState<Boolean>
+        val state: MutableState<Boolean>,
+        val onStateChange: (Boolean) -> Unit
     ) : SettingItem
 
     /**
@@ -33,7 +34,8 @@ sealed interface SettingItem {
      */
     data class TextEntrySetting(
         override val title: String,
-        val state: MutableState<String>
+        val state: MutableState<String>,
+        val onStateChange: (String) -> Unit
     ) : SettingItem
 
     /**
@@ -64,7 +66,8 @@ sealed interface SettingItem {
         override val title: String,
         val state: MutableState<Float>,
         val valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
-        val steps: Int = 0
+        val steps: Int = 0,
+        val onStateChange: (Float) -> Unit
     ) : SettingItem
 
 }
